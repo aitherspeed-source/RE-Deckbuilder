@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="CardData" format=3 uid="uid://pd288t3a6npv"]
+
+[ext_resource type="Script" uid="uid://b7coytr3n77dv" path="res://scripts/CardData.gd" id="1_jbi8g"]
+
+[resource]
+script = ExtResource("1_jbi8g")
+card_name = "Burst Fire"
+cost = 2
+description = "Deal 10 damage."
+value = 10
+metadata/_custom_type_script = "uid://b7coytr3n77dv"

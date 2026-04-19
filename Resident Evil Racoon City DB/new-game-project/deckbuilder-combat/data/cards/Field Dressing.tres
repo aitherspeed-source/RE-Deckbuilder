@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="CardData" format=3 uid="uid://bpj541uega4uy"]
+
+[ext_resource type="Script" uid="uid://b7coytr3n77dv" path="res://scripts/CardData.gd" id="1_qdiei"]
+
+[resource]
+script = ExtResource("1_qdiei")
+card_name = "Field Dressing"
+card_type = "skill"
+cost = 2
+description = "Heal 6 HP. Gain 4 Block."
+value = 6
+value2 = 4
+effect = "heal_and_block"
+metadata/_custom_type_script = "uid://b7coytr3n77dv"
