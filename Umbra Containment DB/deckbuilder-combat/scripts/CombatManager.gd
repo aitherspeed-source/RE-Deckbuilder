@@ -122,6 +122,7 @@ func start_player_turn() -> void:
 	print("Intent: ", enemy.get_intent_text())
 	# Re-enable the End Turn button now that it's actually the player's turn
 	ui.end_turn_button.disabled = false
+	ui.rebuild_hand()
 
 func play_card(index: int) -> void:
 	if current_turn != TurnState.PLAYER_TURN:
