@@ -120,6 +120,8 @@ func start_player_turn() -> void:
 	enemy.reset_block()
 	player.start_turn()
 	print("Intent: ", enemy.get_intent_text())
+	# Re-enable the End Turn button now that it's actually the player's turn
+	ui.end_turn_button.disabled = false
 
 func play_card(index: int) -> void:
 	if current_turn != TurnState.PLAYER_TURN:
