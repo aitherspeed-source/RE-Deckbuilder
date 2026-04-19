@@ -24,6 +24,21 @@ var player_max_ammo   : int   = 3
 var player_infection  : int   = 0  # Carries between rooms!
 var player_gold       : int   = 0
 
+# ── EVENT FLAGS ───────────────────────────────
+# Set by EventRoom.gd, checked by CombatManager.gd
+# Each flag echoes a player choice forward into future rooms
+var weapons_stolen     : bool = false  # Grabbed weapons from supply cache → security guard appears before Boss
+var contaminated_meds  : bool = false  # Took contaminated meds → next combat starts with +1 Infection
+var survivor_helped    : bool = false  # Helped the crawling survivor → cache appears before Boss
+var survivor_abandoned : bool = false  # Walked past survivor → they appear as enemy in next Hallway
+var signal_jammed      : bool = false  # Overrode Umbra broadcast → next Event shows better option
+var specimen_released  : bool = false  # Released mutation chamber → Specimen appears as enemy later
+var umbra_alerted      : bool = false  # Reserved for future Experiment Log event
+
+# ── EVENT TRACKING ────────────────────────────
+# Prevents repeating events within a run until all 8 are exhausted
+var events_seen_this_run : Array = []
+
 # ── DECK ─────────────────────────────────────
 # Stored as Array of card resource paths
 # so it survives scene changes
@@ -90,6 +105,17 @@ func start_new_run() -> void:
 	player_current_hp = player_max_hp
 	player_infection  = 0
 	player_gold       = 0
+
+	# Reset all event flags for a fresh run
+	weapons_stolen     = false
+	contaminated_meds  = false
+	survivor_helped    = false
+	survivor_abandoned = false
+	signal_jammed      = false
+	specimen_released  = false
+	umbra_alerted      = false
+	events_seen_this_run.clear()
+
 	visited_nodes.clear()
 	available_nodes.clear()
 	map_nodes.clear()

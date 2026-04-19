@@ -40,6 +40,8 @@ var attack_damage  : int     = 8
 var heavy_damage   : int     = 18
 var defend_amount  : int     = 6
 var infect_amount  : int     = 2
+# Optional override — set by event flags (e.g. Turned Survivor)
+var intent_override : String = ""
 
 # ────────────────────────────────────────────
 #  READY
@@ -64,6 +66,8 @@ func choose_next_intent() -> void:
 		  Intent.keys()[current_intent])
 
 func get_intent_text() -> String:
+	if intent_override != "":
+		return intent_override
 	match current_intent:
 		Intent.ATTACK:
 			return "⚔️ Attack for " + str(attack_damage)

@@ -62,6 +62,32 @@ func _sync_player_from_manager() -> void:
 	print("  Deck: ", player.deck.size(), " cards")
 	print("  Infection: ", GameManager.player_infection)
 
+	# ── CHECK EVENT FLAGS ─────────────────────────
+	# Contaminated meds: this combat starts with +1 extra Infection
+	if GameManager.contaminated_meds:
+		player.effect_manager.apply_effect("Infection", 1)
+		GameManager.contaminated_meds = false
+		print("☣️ Contaminated meds: +1 Infection at combat start")
+
+	# Survivor abandoned: they turned and tracked you down
+	if GameManager.survivor_abandoned:
+		enemy.enemy_name     = "Turned Survivor"
+		enemy.intent_override = "...You left me..."
+		GameManager.survivor_abandoned = false
+		print("🧟 The survivor you abandoned has turned.")
+
+	# Specimen released: it found you — appears as tougher enemy in a Hallway
+	if GameManager.specimen_released:
+		var _node = GameManager.get_map_node(GameManager.current_node_id)
+		if _node != null and _node.room_type == GameManager.RoomType.HALLWAY:
+			enemy.enemy_name    = "The Specimen"
+			enemy.max_hp        = 55
+			enemy.current_hp    = 55
+			enemy.attack_damage = 10
+			enemy.heavy_damage  = 20
+			GameManager.specimen_released = false
+			print("🩸 The Specimen has tracked you down!")
+
 # ────────────────────────────────────────────
 #  SYNC PLAYER TO MANAGER
 #  Saves HP, infection back after combat
@@ -105,8 +131,8 @@ func setup_combat() -> void:
 				enemy.enemy_name = "The Infected"
 				print("💀 BOSS combat!")
 
-	start_player_turn()
 	ui.setup()
+	start_player_turn()
 
 # ────────────────────────────────────────────
 #  PLAYER TURN
