@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="CardData" format=3 uid="uid://brbrekd1subx2"]
+
+[ext_resource type="Script" uid="uid://b7coytr3n77dv" path="res://scripts/CardData.gd" id="1_7qj5p"]
+
+[resource]
+script = ExtResource("1_7qj5p")
+card_name = "Double Tap"
+cost = 2
+description = "Deal 4 damage twice."
+value = 4
+metadata/_custom_type_script = "uid://b7coytr3n77dv"

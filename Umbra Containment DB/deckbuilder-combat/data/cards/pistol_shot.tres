@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="CardData" format=3 uid="uid://cfdt1wr12720t"]
+
+[ext_resource type="Script" uid="uid://b7coytr3n77dv" path="res://scripts/CardData.gd" id="1_aggkn"]
+
+[resource]
+script = ExtResource("1_aggkn")
+card_name = "Pistol Shot"
+description = "Deal 6 damage."
+value = 6
+metadata/_custom_type_script = "uid://b7coytr3n77dv"

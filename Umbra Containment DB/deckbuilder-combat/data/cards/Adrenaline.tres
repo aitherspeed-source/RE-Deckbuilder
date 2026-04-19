@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="CardData" format=3 uid="uid://cvbibv30pot8v"]
+
+[ext_resource type="Script" uid="uid://b7coytr3n77dv" path="res://scripts/CardData.gd" id="1_ok04v"]
+
+[resource]
+script = ExtResource("1_ok04v")
+card_name = "Adrenaline"
+card_type = "skill"
+cost = 0
+description = "Gain 1 Ammo. Draw 1 card."
+value = 1
+value2 = 1
+effect = "gain_ammo_and_draw"
+metadata/_custom_type_script = "uid://b7coytr3n77dv"

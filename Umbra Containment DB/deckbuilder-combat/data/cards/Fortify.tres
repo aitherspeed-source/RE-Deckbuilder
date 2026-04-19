@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="CardData" format=3 uid="uid://b6m0bpc1tebff"]
+
+[ext_resource type="Script" uid="uid://b7coytr3n77dv" path="res://scripts/CardData.gd" id="1_ehgd1"]
+
+[resource]
+script = ExtResource("1_ehgd1")
+card_name = " Fortify"
+card_type = "power"
+description = "Gain 6 Block. Next attack deals +3 damage."
+value = 6
+value2 = 3
+effect = "fortify"
+metadata/_custom_type_script = "uid://b7coytr3n77dv"
