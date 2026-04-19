@@ -12,6 +12,7 @@ extends Node2D
 
 # What type of combat is this?
 # Pulled from GameManager on _ready
+var room_type : int = 0
 
 enum TurnState {
 	PLAYER_TURN,
@@ -26,7 +27,7 @@ var turn_number  : int = 1
 #  READY — sync from GameManager
 # ────────────────────────────────────────────
 func _ready() -> void:
-	# room_type is determined in setup_combat() via GameManager.get_map_node()
+	room_type = GameManager.current_node_id
 
 	print("=============================")
 	print("   COMBAT BEGIN!")
