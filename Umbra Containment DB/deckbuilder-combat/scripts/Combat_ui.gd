@@ -320,7 +320,8 @@ func _on_end_turn_pressed() -> void:
 	end_turn_button.disabled = true
 	combat_manager.end_player_turn()
 	rebuild_hand()
-	end_turn_button.disabled = false
+	# Button is re-enabled by start_player_turn() instead
+	# so the player can't spam End Turn mid-enemy-turn
 
 func _on_map_pressed() -> void:
 	get_tree().change_scene_to_file(GameManager.SCENE_MAP)
