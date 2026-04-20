@@ -34,7 +34,11 @@ var max_hand_size: int   = 10   # Hard cap — can never exceed this
 # ────────────────────────────────────────────
 #  READY
 # ────────────────────────────────────────────
-func _ready() -> void:
+
+func _ready():
+	add_to_group("player") # <--- ADD THIS LINE
+	print("SUCCESS: Player node has joined the 'player' group!")
+	
 	effect_manager.setup(self)
 	print("Player ready! HP: ", current_hp, "/", max_hp)
 
@@ -206,3 +210,14 @@ func discard_hand() -> void:
 func die() -> void:
 	emit_signal("player_died")
 	print("Player has died! Game Over.")
+
+
+# Add this to Player.gd
+func apply_effect(effect_name: String, amount: int) -> void:
+	# Check if the player has an EffectManager child node
+	if has_node("EffectManager"):
+		$EffectManager.apply_effect(effect_name, amount)
+	else:
+		# If you don't use an EffectManager node, 
+		# we'll print a warning so we know why it's failing
+		print("!!! ERROR: Player node needs an 'EffectManager' child to use apply_effect()")

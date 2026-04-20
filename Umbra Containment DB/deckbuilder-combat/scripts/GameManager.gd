@@ -15,6 +15,10 @@ var run_active     : bool  = false
 var current_floor  : int   = 0   # 0 = map screen
 var current_node_id: int   = -1  # Which map node player is on
 
+# NEW: INFECTION TIER TRACKING
+var current_infection_tier: int = 0
+var active_devices: Array = [] # Stores your Containment Device resources
+
 # ── PLAYER PERSISTENT STATS ──────────────────
 # These carry over between every room
 var player_max_hp     : int   = 70

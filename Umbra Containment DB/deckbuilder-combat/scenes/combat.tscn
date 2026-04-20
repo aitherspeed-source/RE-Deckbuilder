@@ -9,7 +9,7 @@
 [node name="Combat" type="Node2D" unique_id=1402968931]
 script = ExtResource("1_4l26h")
 
-[node name="Player" type="Node2D" parent="." unique_id=613049437]
+[node name="Player" type="Node2D" parent="." unique_id=613049437 groups=["Player"]]
 script = ExtResource("1_764e3")
 
 [node name="EffectManager" type="Node" parent="Player" unique_id=1835699688]
