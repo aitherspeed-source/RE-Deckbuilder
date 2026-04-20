@@ -7,11 +7,6 @@ extends Node2D
 #  handled by CombatManager's BOSS room type).
 # ────────────────────────────────────────────
 
-@onready var continue_button : Button = $VBox/ContinueButton
-
 func _ready() -> void:
-	continue_button.pressed.connect(_on_continue_pressed)
-
-func _on_continue_pressed() -> void:
-	# Boss fight loads combat scene directly
+	# Auto-start boss combat (BossRoom is legacy placeholder).
 	get_tree().change_scene_to_file("res://scenes/combat.tscn")

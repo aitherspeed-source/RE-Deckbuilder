@@ -185,7 +185,8 @@ func _load_room_scene(room_type: int) -> void:
 		RoomType.EVENT:
 			get_tree().change_scene_to_file(SCENE_EVENT)
 		RoomType.BOSS:
-			get_tree().change_scene_to_file(SCENE_BOSS)
+			# Boss should start immediately (no placeholder click gate).
+			get_tree().change_scene_to_file(SCENE_COMBAT)
 
 # ────────────────────────────────────────────
 #  PLAYER STAT HELPERS

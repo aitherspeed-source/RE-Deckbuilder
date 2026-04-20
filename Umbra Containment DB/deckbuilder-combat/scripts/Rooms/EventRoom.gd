@@ -11,9 +11,20 @@ extends Node2D
 var title_label   : Label
 var flavour_label : Label
 var result_label  : Label
+var result_panel  : PanelContainer
 var btn_a         : Button
 var btn_b         : Button
 var continue_btn  : Button
+var content_vbox  : VBoxContainer
+var separator_line: ColorRect
+var continue_anchor: MarginContainer
+var header_box: VBoxContainer
+var ui_layer: CanvasLayer
+var ui_root: Control
+
+const EVENT_MARGIN := 28.0
+const EVENT_MIN_CONTENT_W := 400.0
+const EVENT_MAX_CONTENT_W := 1000.0
 
 var events : Array = [
 	{
@@ -76,9 +87,11 @@ var events : Array = [
 
 var current_event : Dictionary = {}
 var result_text   : String     = ""
+var _auto_continue_started: bool = false
 
 func _ready() -> void:
 	_build_ui()
+	get_viewport().size_changed.connect(_on_viewport_resized)
 	_pick_event()
 
 func _pick_event() -> void:
@@ -104,8 +117,10 @@ func _pick_event() -> void:
 		hint.add_theme_font_size_override("font_size", 13)
 		hint.add_theme_color_override("font_color", Color(0.4, 0.8, 1.0))
 		hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		$VBox.add_child(hint)
-		$VBox.move_child(hint, 3)
+		# Insert hint between divider and flavour (index 3) in the procedural VBox.
+		if content_vbox != null:
+			content_vbox.add_child(hint)
+			content_vbox.move_child(hint, 3)
 		GameManager.signal_jammed = false
 
 func _on_choice_a() -> void:
@@ -215,7 +230,7 @@ func _upgrade_random_card() -> void:
 		if "+" not in card.card_name:
 			card.card_name  = card.card_name + " +"
 			card.cost       = max(0, card.cost - 1)
-			card.base_value += 3
+			card.value += 3
 			print("Upgraded: ", card.card_name)
 			return
 	print("All cards already upgraded.")
@@ -242,75 +257,210 @@ func _show_result() -> void:
 	btn_b.hide()
 	result_label.text = result_text
 	result_label.show()
-	continue_btn.show()
+	result_panel.show()
+	if continue_btn != null:
+		continue_btn.hide()
+
+	if _auto_continue_started:
+		return
+	_auto_continue_started = true
+	_auto_return_to_map_after_delay()
+
+func _auto_return_to_map_after_delay() -> void:
+	var t = get_tree().create_timer(3.0)
+	t.timeout.connect(_on_continue_pressed)
 
 func _on_continue_pressed() -> void:
 	GameManager.complete_room(GameManager.current_node_id)
 
+func _style_event_choice_button(btn: Button) -> void:
+	var normal := StyleBoxFlat.new()
+	normal.bg_color = Color(0.15, 0.02, 0.02, 0.8)
+	normal.border_color = Color(0.45, 0.15, 0.15, 1.0)
+	normal.set_border_width_all(1)
+	normal.set_content_margin_all(10)
+	btn.add_theme_stylebox_override("normal", normal)
+	var hover := normal.duplicate() as StyleBoxFlat
+	hover.bg_color = Color(0.18, 0.04, 0.04, 0.85)
+	hover.border_color = Color(0.82, 0.22, 0.22, 1.0)
+	hover.set_border_width_all(2)
+	btn.add_theme_stylebox_override("hover", hover)
+	var pressed := normal.duplicate() as StyleBoxFlat
+	pressed.bg_color = Color(0.10, 0.02, 0.02, 0.9)
+	btn.add_theme_stylebox_override("pressed", pressed)
+	var disabled := normal.duplicate() as StyleBoxFlat
+	disabled.bg_color = Color(0.08, 0.02, 0.02, 0.55)
+	disabled.border_color = Color(0.24, 0.10, 0.10, 0.8)
+	btn.add_theme_stylebox_override("disabled", disabled)
+	var focus_sb := normal.duplicate() as StyleBoxFlat
+	btn.add_theme_stylebox_override("focus", focus_sb)
+
 func _build_ui() -> void:
+	# Remove placeholder nodes from EventRoom.tscn so only the procedural UI remains.
+	for child in get_children():
+		child.free()
+
+	var vp := get_viewport().get_visible_rect().size
+	var content_w: float = clampf(vp.x * 0.60, EVENT_MIN_CONTENT_W, EVENT_MAX_CONTENT_W)
+
+	ui_layer = CanvasLayer.new()
+	add_child(ui_layer)
+
+	ui_root = Control.new()
+	ui_root.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	ui_layer.add_child(ui_root)
+
 	var bg = ColorRect.new()
-	bg.color = Color(0.06, 0.04, 0.04, 1.0)
+	bg.color = Color(0.05, 0.05, 0.05, 1.0)
 	bg.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	add_child(bg)
-	var vbox = VBoxContainer.new()
-	vbox.name = "VBox"
-	vbox.set_anchors_and_offsets_preset(Control.PRESET_CENTER)
-	vbox.offset_left   = -430
-	vbox.offset_top    = -300
-	vbox.offset_right  =  430
-	vbox.offset_bottom =  300
-	vbox.add_theme_constant_override("separation", 16)
-	add_child(vbox)
+	bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	ui_root.add_child(bg)
+
+	var bioscan = ColorRect.new()
+	bioscan.color = Color(0.18, 0.08, 0.24, 0.05)
+	bioscan.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	bioscan.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	ui_root.add_child(bioscan)
+
+	content_vbox = VBoxContainer.new()
+	content_vbox.name = "VBox"
+	content_vbox.set_anchors_and_offsets_preset(Control.PRESET_CENTER)
+	content_vbox.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	content_vbox.grow_vertical = Control.GROW_DIRECTION_BOTH
+	content_vbox.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	content_vbox.custom_minimum_size = Vector2(content_w, 0)
+	content_vbox.add_theme_constant_override("separation", 16)
+	ui_root.add_child(content_vbox)
+
+	# Keep child order compatible with _pick_event() move_child(hint, 3):
+	# [0 header_center, 1 divider, 2 spacer, 3 flavour, ...]
+	var header_center = CenterContainer.new()
+	content_vbox.add_child(header_center)
+
+	header_box = VBoxContainer.new()
+	header_box.add_theme_constant_override("separation", 4)
+	header_center.add_child(header_box)
+
 	var tag = Label.new()
 	tag.text = "❓  E V E N T"
 	tag.add_theme_font_size_override("font_size", 13)
 	tag.add_theme_color_override("font_color", Color(0.5, 0.45, 0.35))
 	tag.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	vbox.add_child(tag)
+	header_box.add_child(tag)
+
 	title_label = Label.new()
 	title_label.add_theme_font_size_override("font_size", 30)
 	title_label.add_theme_color_override("font_color", Color(1.0, 0.85, 0.2))
 	title_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	vbox.add_child(title_label)
+	header_box.add_child(title_label)
+
 	var div = Label.new()
 	div.text = "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 	div.add_theme_color_override("font_color", Color(0.3, 0.2, 0.2))
 	div.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	vbox.add_child(div)
+	content_vbox.add_child(div)
+
+	var flavour_spacer = Control.new()
+	flavour_spacer.custom_minimum_size = Vector2(0, 6)
+	content_vbox.add_child(flavour_spacer)
+
 	flavour_label = Label.new()
 	flavour_label.add_theme_font_size_override("font_size", 16)
 	flavour_label.add_theme_color_override("font_color", Color(0.85, 0.82, 0.78))
 	flavour_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	flavour_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	flavour_label.custom_minimum_size = Vector2(840, 90)
-	vbox.add_child(flavour_label)
-	var sp = Control.new()
-	sp.custom_minimum_size = Vector2(0, 10)
-	vbox.add_child(sp)
+	flavour_label.custom_minimum_size = Vector2(content_w, 0)
+	flavour_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	content_vbox.add_child(flavour_label)
+
+	var sep_spacer = Control.new()
+	sep_spacer.custom_minimum_size = Vector2(0, 10)
+	content_vbox.add_child(sep_spacer)
+
+	separator_line = ColorRect.new()
+	separator_line.color = Color(0.3, 0.2, 0.2, 1.0)
+	separator_line.custom_minimum_size = Vector2(content_w, 2)
+	separator_line.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	content_vbox.add_child(separator_line)
+
+	var gap_before_choices = Control.new()
+	gap_before_choices.custom_minimum_size = Vector2(0, 12)
+	content_vbox.add_child(gap_before_choices)
+
 	btn_a = Button.new()
+	_style_event_choice_button(btn_a)
 	btn_a.add_theme_font_size_override("font_size", 15)
-	btn_a.custom_minimum_size = Vector2(840, 64)
+	btn_a.custom_minimum_size = Vector2(content_w, 64)
+	btn_a.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	btn_a.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	btn_a.clip_text = false
 	btn_a.pressed.connect(_on_choice_a)
-	vbox.add_child(btn_a)
+	content_vbox.add_child(btn_a)
+
 	btn_b = Button.new()
+	_style_event_choice_button(btn_b)
 	btn_b.add_theme_font_size_override("font_size", 15)
-	btn_b.custom_minimum_size = Vector2(840, 64)
+	btn_b.custom_minimum_size = Vector2(content_w, 64)
+	btn_b.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	btn_b.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	btn_b.clip_text = false
 	btn_b.pressed.connect(_on_choice_b)
-	vbox.add_child(btn_b)
+	content_vbox.add_child(btn_b)
+
+	result_panel = PanelContainer.new()
+	var result_sb = StyleBoxFlat.new()
+	result_sb.bg_color = Color(0.05, 0.08, 0.06, 1.0)
+	result_sb.border_color = Color(0.25, 0.55, 0.35, 1.0)
+	result_sb.set_border_width_all(2)
+	result_sb.set_content_margin_all(14)
+	result_panel.add_theme_stylebox_override("panel", result_sb)
+	result_panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	result_panel.hide()
+
 	result_label = Label.new()
 	result_label.add_theme_font_size_override("font_size", 16)
 	result_label.add_theme_color_override("font_color", Color(0.5, 1.0, 0.6))
 	result_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	result_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	result_label.custom_minimum_size = Vector2(840, 70)
+	result_label.custom_minimum_size = Vector2(content_w - 28, 0)
 	result_label.hide()
-	vbox.add_child(result_label)
+	result_panel.add_child(result_label)
+	content_vbox.add_child(result_panel)
+
+	var bottom_spacer = Control.new()
+	bottom_spacer.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	bottom_spacer.custom_minimum_size = Vector2(0, 8)
+	content_vbox.add_child(bottom_spacer)
+
+	# Continue button pinned to bottom-right (direct child of root).
+	continue_anchor = MarginContainer.new()
+	continue_anchor.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_RIGHT)
+	continue_anchor.add_theme_constant_override("margin_right", 40)
+	continue_anchor.add_theme_constant_override("margin_bottom", 40)
+	continue_anchor.mouse_filter = Control.MOUSE_FILTER_PASS
+	ui_root.add_child(continue_anchor)
+
 	continue_btn = Button.new()
 	continue_btn.text = "Continue →"
 	continue_btn.add_theme_font_size_override("font_size", 18)
-	continue_btn.custom_minimum_size = Vector2(200, 50)
+	continue_btn.custom_minimum_size = Vector2(220, 50)
 	continue_btn.hide()
 	continue_btn.pressed.connect(_on_continue_pressed)
-	vbox.add_child(continue_btn)
+	continue_anchor.add_child(continue_btn)
+
+func _on_viewport_resized() -> void:
+	_reflow_layout_for_viewport()
+
+func _reflow_layout_for_viewport() -> void:
+	if flavour_label == null or btn_a == null or btn_b == null or result_label == null:
+		return
+	var vp := get_viewport().get_visible_rect().size
+	var content_w: float = clampf(vp.x * 0.60, EVENT_MIN_CONTENT_W, EVENT_MAX_CONTENT_W)
+	if content_vbox != null:
+		content_vbox.custom_minimum_size.x = content_w
+	flavour_label.custom_minimum_size.x = content_w
+	btn_a.custom_minimum_size.x = content_w
+	btn_b.custom_minimum_size.x = content_w
+	result_label.custom_minimum_size.x = maxf(content_w - 28.0, 120.0)
+	if separator_line != null:
+		separator_line.custom_minimum_size.x = content_w

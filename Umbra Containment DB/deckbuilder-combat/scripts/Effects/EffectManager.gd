@@ -89,6 +89,8 @@ func receive_damage(amount: int) -> void:
 		print(entity.name, " takes ", final_damage,
 			" damage! HP: ", entity.current_hp,
 			"/", entity.max_hp)
+		if entity.has_method("after_damage"):
+			entity.after_damage()
 		if entity.current_hp <= 0:
 			entity.die()
 

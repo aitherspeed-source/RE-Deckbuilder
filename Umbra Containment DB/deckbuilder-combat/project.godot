@@ -21,6 +21,11 @@ StatusEffects="*uid://ct3rrmb638q2u"
 GameManager="*uid://c1jta4h31bjge"
 MapGenerator="*uid://d4gll2q04oj1d"
 
+[display]
+
+window/stretch/mode="canvas_items"
+window/stretch/aspect="expand"
+
 [physics]
 
 3d/physics_engine="Jolt Physics"

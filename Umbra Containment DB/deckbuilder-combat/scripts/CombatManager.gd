@@ -9,6 +9,7 @@ extends Node2D
 @onready var player : Node2D = $Player
 @onready var enemy  : Node2D = $Enemy
 @onready var ui               = $UI/GameUI
+const BOSS_ENEMY_DIR := "res://data/enemies/bosses/"
 
 # What type of combat is this?
 # Pulled from GameManager on _ready
@@ -27,7 +28,9 @@ var turn_number  : int = 1
 #  READY — sync from GameManager
 # ────────────────────────────────────────────
 func _ready() -> void:
-	room_type = GameManager.current_node_id
+	var node = GameManager.get_map_node(GameManager.current_node_id)
+	if node != null:
+		room_type = node.room_type
 
 	print("=============================")
 	print("   COMBAT BEGIN!")
@@ -107,6 +110,8 @@ func _sync_player_to_manager() -> void:
 # ────────────────────────────────────────────
 func setup_combat() -> void:
 	print("Deck loaded: ", player.deck.size(), " cards.")
+	# Hallway/normal fights should not carry evolution metadata.
+	enemy.clear_evolution_data()
 
 	# Scale enemy for Elite rooms
 	var node = GameManager.get_map_node(
@@ -124,12 +129,17 @@ func setup_combat() -> void:
 				enemy.current_hp = 35
 				print("☣️ Infection Zone combat!")
 			GameManager.RoomType.BOSS:
-				enemy.max_hp     = 120
-				enemy.current_hp = 120
-				enemy.attack_damage  = 15
-				enemy.heavy_damage   = 30
-				enemy.enemy_name = "The Infected"
-				print("💀 BOSS combat!")
+				var boss_data = _load_random_boss_enemy_data()
+				if boss_data != null:
+					enemy.apply_from_enemy_data(boss_data)
+					print("💀 BOSS combat! Loaded: ", boss_data.enemy_name)
+				else:
+					enemy.max_hp     = 120
+					enemy.current_hp = 120
+					enemy.attack_damage  = 15
+					enemy.heavy_damage   = 30
+					enemy.enemy_name = "The Infected"
+					print("💀 BOSS combat! (fallback)")
 
 	ui.setup()
 	start_player_turn()
@@ -203,7 +213,13 @@ func check_combat_end() -> void:
 		current_turn = TurnState.COMBAT_OVER
 		print("Enemy defeated!")
 		_sync_player_to_manager()
-		ui.show_reward_screen()
+		var node = GameManager.get_map_node(GameManager.current_node_id)
+		if node != null and node.room_type == GameManager.RoomType.BOSS:
+			print("Facility Cleared!")
+			GameManager.end_run(true)
+			ui.show_result(true)
+		else:
+			ui.show_reward_screen()
 		return
 
 	if player.current_hp <= 0:
@@ -231,3 +247,45 @@ func print_combat_state() -> void:
 		print("  [", i, "] ", c.card_name,
 			  " (Cost: ", c.cost, ")")
 	print("")
+
+func _load_random_boss_enemy_data() -> EnemyData:
+	var resources : Array[EnemyData] = []
+	var seen_paths := {}
+
+	var dir := DirAccess.open(BOSS_ENEMY_DIR)
+	if dir == null:
+		print("No boss enemy directory: ", BOSS_ENEMY_DIR)
+		return null
+
+	dir.list_dir_begin()
+	var file_name := dir.get_next()
+	while file_name != "":
+		if not dir.current_is_dir():
+			var candidate = _normalize_enemy_resource_name(file_name)
+			if candidate != "":
+				var full_path = BOSS_ENEMY_DIR + candidate
+				if ResourceLoader.exists(full_path) and not seen_paths.has(full_path):
+					seen_paths[full_path] = true
+					var loaded = ResourceLoader.load(full_path)
+					if loaded is EnemyData:
+						resources.append(loaded as EnemyData)
+					else:
+						print("Skipped non-EnemyData resource: ", full_path)
+		file_name = dir.get_next()
+	dir.list_dir_end()
+
+	if resources.is_empty():
+		return null
+
+	resources.shuffle()
+	return resources[0]
+
+func _normalize_enemy_resource_name(file_name: String) -> String:
+	var normalized := file_name
+	if normalized.ends_with(".import"):
+		normalized = normalized.substr(0, normalized.length() - ".import".length())
+	if normalized.ends_with(".remap"):
+		normalized = normalized.substr(0, normalized.length() - ".remap".length())
+	if not normalized.ends_with(".tres"):
+		return ""
+	return normalized

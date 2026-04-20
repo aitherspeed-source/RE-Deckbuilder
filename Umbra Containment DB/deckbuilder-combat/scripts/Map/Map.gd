@@ -162,55 +162,59 @@ func _create_node_button(node) -> void:
 #  BUILD HEADER — player stats at top
 # ────────────────────────────────────────────
 func build_header() -> void:
-	# Background bar
-	var bg        = ColorRect.new()
-	bg.color      = Color(0.08, 0.08, 0.12, 0.95)
-	bg.position   = Vector2(0, 0)
-	bg.size       = Vector2(1152, 52)
-	map_ui.add_child(bg)
+	var header = PanelContainer.new()
+	header.set_anchors_and_offsets_preset(Control.PRESET_TOP_WIDE)
+	header.custom_minimum_size = Vector2(0, 58)
+	map_ui.add_child(header)
 
-	# HP label
+	var bg_style = StyleBoxFlat.new()
+	bg_style.bg_color = Color(0.08, 0.08, 0.12, 0.95)
+	header.add_theme_stylebox_override("panel", bg_style)
+
+	var margin = MarginContainer.new()
+	margin.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	margin.add_theme_constant_override("margin_left", 14)
+	margin.add_theme_constant_override("margin_right", 14)
+	margin.add_theme_constant_override("margin_top", 10)
+	margin.add_theme_constant_override("margin_bottom", 10)
+	header.add_child(margin)
+
+	var row = HBoxContainer.new()
+	row.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	row.add_theme_constant_override("separation", 18)
+	margin.add_child(row)
+
 	var hp_label  = Label.new()
 	hp_label.text = "❤️ HP: " + str(GameManager.player_current_hp) + \
 		" / " + str(GameManager.player_max_hp)
-	hp_label.position = Vector2(16, 12)
 	hp_label.add_theme_font_size_override("font_size", 18)
-	map_ui.add_child(hp_label)
+	row.add_child(hp_label)
 
-	# Infection label
 	var inf_label = Label.new()
-	inf_label.text = "🧫 Infection: " + \
-		str(GameManager.player_infection)
-	inf_label.position = Vector2(220, 12)
+	inf_label.text = "🧫 Infection: " + str(GameManager.player_infection)
 	inf_label.add_theme_font_size_override("font_size", 18)
-	inf_label.add_theme_color_override(
-		"font_color", Color(0.4, 1.0, 0.4))
-	map_ui.add_child(inf_label)
+	inf_label.add_theme_color_override("font_color", Color(0.4, 1.0, 0.4))
+	row.add_child(inf_label)
 
-	# Deck size label
 	var deck_label = Label.new()
-	deck_label.text = "🃏 Deck: " + \
-		str(GameManager.player_deck.size()) + " cards"
-	deck_label.position = Vector2(420, 12)
+	deck_label.text = "🃏 Deck: " + str(GameManager.player_deck.size()) + " cards"
 	deck_label.add_theme_font_size_override("font_size", 18)
-	map_ui.add_child(deck_label)
+	row.add_child(deck_label)
 
-	# Floor label
 	var floor_label = Label.new()
-	floor_label.text = "🗺️ Floor: " + \
-		str(GameManager.current_floor)
-	floor_label.position = Vector2(640, 12)
+	floor_label.text = "🗺️ Floor: " + str(GameManager.current_floor)
 	floor_label.add_theme_font_size_override("font_size", 18)
-	map_ui.add_child(floor_label)
+	row.add_child(floor_label)
 
-	# Title
-	var title     = Label.new()
-	title.text    = "SELECT YOUR PATH"
-	title.position = Vector2(850, 12)
+	var spacer = Control.new()
+	spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	row.add_child(spacer)
+
+	var title = Label.new()
+	title.text = "SELECT YOUR PATH"
 	title.add_theme_font_size_override("font_size", 18)
-	title.add_theme_color_override(
-		"font_color", Color(1.0, 0.9, 0.2))
-	map_ui.add_child(title)
+	title.add_theme_color_override("font_color", Color(1.0, 0.9, 0.2))
+	row.add_child(title)
 
 # ────────────────────────────────────────────
 #  NODE PRESSED

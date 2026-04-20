@@ -48,8 +48,15 @@ It is a test environment — and you are inside it.
 | ⭐ | Elite | Tougher enemy, better rewards |
 | ☣️ | Infection Zone | Gain 2 Infection on entry, better rewards |
 | 🏥 | Safe Room | Heal, remove, or upgrade a card |
-| ❓ | Event | Random choices with consequences *(in progress)* |
+| ❓ | Event | Random choices with consequences (8 events, procedural UI) |
 | 💀 | Boss | Final encounter of the run |
+
+### 👾 Enemy Data (Boss-first)
+- Boss enemies are now data-driven via `.tres` resources:
+  - `deckbuilder-combat/scripts/EnemyData.gd`
+  - `deckbuilder-combat/data/enemies/bosses/*.tres`
+- Boss selection loads a random boss resource and applies it to the enemy at combat start.
+- Boss evolution is supported (phase shift at threshold): name change + intent pool swap + `Strength +5`.
 
 ### ⚔️ Combat System
 - Turn-based combat — Player then Enemy
@@ -106,12 +113,14 @@ Three mutually exclusive options:
 
 ### 🎨 UI
 - Dark themed procedural UI built entirely in code (no scene-based UI nodes)
-- Enemy panel — name, HP, Block, Intent
-- Player panel — HP, Block, Ammo, Infection
-- Card hand — clickable buttons, greyed out when unaffordable
-- End Turn button
+- **Combat** — responsive layout (enemy top / player bottom-left / hand center / actions bottom-right), shared typography and spacing constants, HP bars with numeric readouts, intent line as `NEXT: …`, hand cards with bordered chrome and truncated descriptions when needed
+- Enemy panel — name, HP bar, Block, Intent
+- Player panel — HP bar, Block, Ammo, Infection
+- Card hand — styled buttons, greyed out when unaffordable
+- End Turn and Map buttons
 - Victory screen with **Card Reward** — pick 1 of 3 random cards or skip
 - Game Over screen with New Run button
+- **Event room** — procedural CanvasLayer UI, separator between flavour and choices, wrapped choice buttons, outcome in a bordered panel, auto-return to map after a short delay
 
 ---
 
@@ -121,14 +130,16 @@ Three mutually exclusive options:
 DeckbuilderCombat/
 ├── data/
 │   └── cards/              # .tres card resource files (10 cards)
+│   └── enemies/             # .tres enemy resource files (bosses first)
 ├── scenes/
 │   ├── Combat.tscn         # Main combat scene
 │   ├── Map.tscn            # Map navigation scene
 │   ├── SafeRoom.tscn       # Safe room scene
-│   └── rooms/              # Future room scenes
+│   └── rooms/              # EventRoom.tscn, etc.
 ├── scripts/
 │   ├── CardData.gd         # Card resource blueprint
 │   ├── CardLibrary.gd      # Loads .tres cards, executes effects (Autoload)
+│   ├── EnemyData.gd        # Enemy resource blueprint (.tres-driven)
 │   ├── CombatManager.gd    # Turn system, win/loss logic
 │   ├── Combat_ui.gd        # Combat UI + card reward screen
 │   ├── GameManager.gd      # Persistent run state (Autoload)
@@ -150,26 +161,18 @@ DeckbuilderCombat/
 │   │   └── MapUI.gd            # Map UI control
 │   └── Rooms/              # Room scripts
 │       ├── SafeRoom.gd
-│       └── SafeRoomUI.gd
+│       ├── SafeRoomUI.gd
+│       └── EventRoom.gd
 ```
 
 ---
 
 ## 🚀 Near-Future Plans
 
-### ❓ Event Room
-- 5–10 random events with story flavour text
-- 2–3 choices per event with meaningful consequences
-- Examples:
-  - *Infected Supply Cache* — take 5 damage OR gain 2 random cards
-  - *Field Medic* — pay 10 HP to remove a card
-  - *Contaminated Water* — gain 3 Infection OR skip and lose nothing
-  - *Abandoned Lab* — upgrade a random card OR gain a random card
-
 ### 💀 Boss Room
-- Unique boss: **The Infected**
-- Phase-based attack patterns (changes moves at 50% HP)
-- Guaranteed card reward + special relic on defeat
+- More bosses as `EnemyData` resources (beyond the current Containment Tyrant → MR.X phase shift)
+- More phase behaviors (beyond pool swap + Strength)
+- Boss-specific rewards (relics) and post-boss victory flow polish
 
 ### 🔄 Restart & New Run Flow
 - Full new run button from Game Over screen
@@ -206,11 +209,11 @@ DeckbuilderCombat/
 - Mini-boss rooms at row 4
 
 ### 🎨 Visual Polish
-- HP bars replacing text labels
 - Card art placeholder sprites
 - Animated path reveal on map
 - Screen shake on heavy hits
 - Infection visual effect building on screen edge
+- Extra combat feedback (damage flashes, stronger Umbrella theming) beyond current layout pass
 
 ### 💾 Save System
 - Save run state to disk between sessions

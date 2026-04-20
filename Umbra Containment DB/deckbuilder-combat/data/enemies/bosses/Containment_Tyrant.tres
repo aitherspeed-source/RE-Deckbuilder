@@ -1,0 +1,37 @@
+[gd_resource type="Resource" script_class="EnemyData" format=3]
+
+[ext_resource type="Script" path="res://scripts/EnemyData.gd" id="1_enemydata"]
+
+[resource]
+script = ExtResource("1_enemydata")
+enemy_name = "Containment Tyrant"
+max_hp = 120
+attack_damage = 15
+heavy_damage = 30
+defend_amount = 8
+infect_amount = 3
+intent_pool_phase_a = Array[Dictionary]([{
+"kind": "attack",
+"weight": 3
+}, {
+"kind": "defend",
+"weight": 2
+}, {
+"kind": "infect",
+"weight": 1
+}, {
+"kind": "heavy",
+"weight": 2
+}])
+intent_pool_phase_b = Array[Dictionary]([{
+"kind": "attack",
+"weight": 4
+}, {
+"kind": "heavy",
+"weight": 4
+}, {
+"kind": "infect",
+"weight": 2
+}])
+evolution_name = "Containment MR.X"
+evolution_threshold = 0.5
